@@ -86,7 +86,7 @@ namespace CornellBoxWPF
 
             if(nL >= 0)
             {
-                Vector3 ilm = Vector3.Normalize(Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color));       // Normalize???        
+                Vector3 ilm = Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color);       // Normalize???        
                 diffLight = Vector3.Multiply(ilm, nL);
             }
             return diffLight;
@@ -111,7 +111,7 @@ namespace CornellBoxWPF
                 phong = lightIntensity * phongFactor;
             }
 
-            return phong;
+            return phong + CalcColourWithDiffuse(scene, ray);
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -124,11 +124,11 @@ namespace CornellBoxWPF
                 for (int y = 0; y < image.PixelHeight; y++)
                 {
                     //Vector3 color = CalcColour(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));                      // Plain
-                    //Vector3 color = CalcColourWithDiffuse(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));             // Diffuse Light
+                    //Vector3 color = CalcColourWithDiffuse(scene, CreateEyeRay(eye, lookAt, FOV, rnew Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));             // Diffuse Light
                     Vector3 color = CalcColorWithDiffuseAndPhong(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = Convert.ToByte(color.Z * 255);            // Blue
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = Convert.ToByte(color.Y * 255);        // Green
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = Convert.ToByte(color.X * 255);        // Red
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClamp8(color.Z);            // Blue
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClamp8(color.Y);        // Green
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClamp8(color.X);        // Red
                 }
             }
 

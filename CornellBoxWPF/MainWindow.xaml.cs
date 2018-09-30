@@ -114,6 +114,44 @@ namespace CornellBoxWPF
             return phong + CalcColourWithDiffuse(scene, ray);
         }
 
+        public Vector3 CalcColorWithDiffuseAndPhongAndShadows(Sphere[] scene, Ray ray)
+        {
+            HitPoint hitpoint = FindClosestHitPoint(scene, ray);
+            Vector3 phong = Vector3.Zero;
+
+            Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
+            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
+            float nL = Vector3.Dot(n, l);
+
+            if (nL >= 0)
+            {
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
+                Vector3 s = l - Vector3.Dot(l, n) * n;
+                Vector3 r = Vector3.Normalize(l - 2 * s);
+
+                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), k);
+                phong = lightIntensity * phongFactor;
+            }
+
+            Vector3 phongAndDiffuse = phong + CalcColourWithDiffuse(scene, ray);
+            float shadow = 1.0f;
+
+            Ray LightRay = new Ray(hitpoint.H, Vector3.Normalize(lightPos - hitpoint.H));
+            LightRay.Origin += LightRay.Direction * 0.001f;
+
+            for (int i = 0; i < scene.Length; i++)
+            {
+                float Lambda = scene[i].FindHitPoint(LightRay);
+                if (Lambda != 0 && Lambda < LightRay.Direction.Length())
+                {
+                    shadow = 0f;
+                    break;
+                }
+            }
+
+            return phongAndDiffuse * shadow;
+        }
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             int bytesPerPixel = 4; 
@@ -125,7 +163,8 @@ namespace CornellBoxWPF
                 {
                     //Vector3 color = CalcColour(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));                      // Plain
                     //Vector3 color = CalcColourWithDiffuse(scene, CreateEyeRay(eye, lookAt, FOV, rnew Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));             // Diffuse Light
-                    Vector3 color = CalcColorWithDiffuseAndPhong(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong
+                    //Vector3 color = CalcColorWithDiffuseAndPhong(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong
+                    Vector3 color = CalcColorWithDiffuseAndPhongAndShadows(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong & Shadows
                     colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClamp8(color.Z);            // Blue
                     colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClamp8(color.Y);        // Green
                     colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClamp8(color.X);        // Red

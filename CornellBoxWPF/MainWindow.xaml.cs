@@ -24,11 +24,10 @@ namespace CornellBoxWPF
         public static Vector3 eye = new Vector3(0, 0, -4);
         public static Vector3 lookAt = new Vector3(0, 0, 6);
         public static Vector3 up = new Vector3(0, 1, 0);
-        public static Vector3 light = new Vector3(0.0f, -0.9f, 0);
+        public static Vector3 lightPos = new Vector3(0.0f, -0.9f, 0);
         public static Vector3 lightIntensity = new Vector3(1.0f, 1.0f, 1.0f);
         public static float FOV = (float)(36 * Math.PI / 180);
-        public static int k = 1000;
-
+        public static int k = 40;
 
         public Sphere[] scene = { new Sphere(new Vector3(-1001, 0, 0), 1000, new Vector3(0, 0, 1)),
                                     new Sphere(new Vector3(1001, 0, 0), 1000, new Vector3(1, 0, 0)),
@@ -82,12 +81,12 @@ namespace CornellBoxWPF
             Vector3 diffLight = Vector3.Zero;
 
             Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
-            Vector3 l = Vector3.Normalize(Vector3.Subtract(light, hitpoint.H));
+            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
             float nL = Vector3.Dot(n, l);
 
             if(nL >= 0)
             {
-                Vector3 ilm = Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color);            
+                Vector3 ilm = Vector3.Normalize(Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color));       // Normalize???        
                 diffLight = Vector3.Multiply(ilm, nL);
             }
             return diffLight;
@@ -96,24 +95,23 @@ namespace CornellBoxWPF
         public Vector3 CalcColorWithDiffuseAndPhong(Sphere[] scene, Ray ray)
         {
             HitPoint hitpoint = FindClosestHitPoint(scene, ray);
-            Vector3 diffLight = Vector3.Zero;
             Vector3 phong = Vector3.Zero;
-
+            
             Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
-            Vector3 l = Vector3.Normalize(Vector3.Subtract(light, hitpoint.H));
+            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
             float nL = Vector3.Dot(n, l);
 
             if (nL >= 0)
-            {
-                Vector3 ilm = Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color);
-                diffLight = Vector3.Multiply(ilm, nL);
-
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(hitpoint.H, eye));
-                Vector3 r = Vector3.Subtract(l, 2 * (Vector3.Dot(l, n)) * n);
-                float fac = (float)Math.Pow((r.Length()*EH.Length()), k);         // Dot??
-                phong = Vector3.Multiply(diffLight, fac);
+            {                
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
+                Vector3 s = l - Vector3.Dot(l, n) * n; 
+                Vector3 r = Vector3.Normalize(l - 2 * s);
+                
+                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), k);
+                phong = lightIntensity * phongFactor;
             }
-            return phong;            
+
+            return phong;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -128,9 +126,9 @@ namespace CornellBoxWPF
                     //Vector3 color = CalcColour(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));                      // Plain
                     //Vector3 color = CalcColourWithDiffuse(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));             // Diffuse Light
                     Vector3 color = CalcColorWithDiffuseAndPhong(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = Convert.ToByte(color.X * 255);
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = Convert.ToByte(color.Y * 255);
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = Convert.ToByte(color.Z * 255);
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = Convert.ToByte(color.Z * 255);            // Blue
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = Convert.ToByte(color.Y * 255);        // Green
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = Convert.ToByte(color.X * 255);        // Red
                 }
             }
 
@@ -141,10 +139,17 @@ namespace CornellBoxWPF
             img.Source = image;
         }
 
-        public double GetAngle(Vector3 a, Vector3 b)
+        private byte ConvertAndClamp8(float n)
         {
-            double theta = Math.Acos((Vector3.Dot(a,b)/(a.Length()*b.Length())));
-            return theta;            
+            int x = (int)Math.Round(255 * n, 0);
+
+            if (x > 255)
+                return 255;
+
+            if (x < 0)
+                return 0;
+
+            return (byte)x;
         }
     }
 }

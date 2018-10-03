@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CornellBoxWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="1000" Width="1000">
+        Title="MainWindow" Height="600" Width="600">
     <Grid>
-        <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,0" />
+        <CheckBox IsChecked="{Binding IsDiffuseCheckBoxChecked}" x:Name="Diffuse" Content="Diffuse/Lambert" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,2"/>
+        <CheckBox IsChecked="{Binding IsSpecularCheckBoxChecked}" x:Name="Specular" Content="Specular/Phong" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,2" />
+        <CheckBox IsChecked="{Binding IsShadowCheckBoxChecked}" x:Name="Shadow" Content="Shadows" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="240,2" />
+        <CheckBox IsChecked="{Binding IsReflectionCheckBoxChecked}" x:Name="Reflection" Content="Reflections" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="340,2" />
+        <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0" />
     </Grid>
 </Window>

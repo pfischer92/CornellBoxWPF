@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Media;
@@ -12,162 +13,143 @@ namespace CornellBoxWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        public class CheckBoxControl : INotifyPropertyChanged
+        {
+            private MainWindow _window;
+            private bool isDiffuseCheckBoxChecked;
+            private bool isSpecularCheckBoxChecked;
+            private bool isShadowCheckBoxChecked;
+            private bool isReflectionCheckBoxChecked;
+
+            public bool IsDiffuseCheckBoxChecked
+            {
+                get
+                {
+                    return isDiffuseCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isDiffuseCheckBoxChecked != value)
+                    {
+                        isDiffuseCheckBoxChecked = value;
+                        NotifyPropertChanged("isDiffuseCheckBoxChecked has changed");
+                    }
+                }
+            }
+
+            public bool IsSpecularCheckBoxChecked
+            {
+                get
+                {
+                    return isSpecularCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isSpecularCheckBoxChecked != value)
+                    {
+                        isSpecularCheckBoxChecked = value;
+                        NotifyPropertChanged("isSpecularCheckBoxChecked has changed");
+                    }
+                }
+            }
+
+            public bool IsShadowCheckBoxChecked
+            {
+                get
+                {
+                    return isShadowCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isShadowCheckBoxChecked != value)
+                    {
+                        isShadowCheckBoxChecked = value;
+                        NotifyPropertChanged("isSpecularCheckBoxChecked has changed");
+                    }
+                }
+            }
+            public bool IsReflectionCheckBoxChecked
+            {
+                get
+                {
+                    return isReflectionCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isReflectionCheckBoxChecked != value)
+                    {
+                        isReflectionCheckBoxChecked = value;
+                        NotifyPropertChanged("isReflectionCheckBoxChecked has changed");
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            public void NotifyPropertChanged(string propertyName)
+            {
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                _window.PrintScene();
+            }
+
+            public CheckBoxControl(MainWindow window)
+            {
+                isDiffuseCheckBoxChecked = false;
+                isSpecularCheckBoxChecked = false;
+                isShadowCheckBoxChecked = false;
+                isReflectionCheckBoxChecked = false;
+                _window = window;
+            }
+        }
         public WriteableBitmap image { get; set; }
+
+        public static float GAMMA = 2.2f;
+
+        public CheckBoxControl checkBoxControl;
 
         public MainWindow()
         {
-            image = new WriteableBitmap(1000, 1000, 96, 96, PixelFormats.Bgr32, null);
+            image = new WriteableBitmap(600, 600, 96, 96, PixelFormats.Bgr32, null);
             InitializeComponent();
             Loaded += MainWindow_Loaded;
+            checkBoxControl = new CheckBoxControl(this);
+            DataContext = checkBoxControl;
         }
 
-        public static Vector3 eye = new Vector3(0, 0, -4);
-        public static Vector3 lookAt = new Vector3(0, 0, 6);
-        public static Vector3 up = new Vector3(0, 1, 0);
-        public static Vector3 lightPos = new Vector3(0.0f, -0.9f, 0);
-        public static Vector3 lightIntensity = new Vector3(1.0f, 1.0f, 1.0f);
-        public static float FOV = (float)(36 * Math.PI / 180);
-        public static int k = 40;
-
-        public Sphere[] scene = { new Sphere(new Vector3(-1001, 0, 0), 1000, new Vector3(0, 0, 1)),
+        public List<Sphere> spheres = new List<Sphere>{ new Sphere(new Vector3(-1001, 0, 0), 1000, new Vector3(0, 0, 1)),
                                     new Sphere(new Vector3(1001, 0, 0), 1000, new Vector3(1, 0, 0)),
                                     new Sphere(new Vector3(0, 0, 1001), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, 1001, 0), 1000, new Vector3(1, 1, 1)),
-                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0)),
-                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1))};
+                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true),
+                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), true)};
 
-        public Ray CreateEyeRay(Vector3 eye, Vector3 lookAt, float FOV, Vector2 pixel)
-        {
-            Vector3 f = Vector3.Normalize(lookAt - eye);                      
-            Vector3 r = Vector3.Normalize(Vector3.Cross(f, up));
-            Vector3 u = Vector3.Normalize(Vector3.Cross(r, f));
-            Vector3 d = f + pixel.X * r * (float)Math.Tan(FOV / 2) + pixel.Y * u * (float)Math.Tan(FOV / 2);
-
-            return new Ray(eye, Vector3.Normalize(d));
-        }
-
-        public HitPoint FindClosestHitPoint(Sphere[] scene, Ray ray)
-        {
-            Vector3 H = new Vector3(0, 0, 0);
-            Vector3 colour = new Vector3(0, 0, 0);
-            int idxSmallestLambda = int.MaxValue;
-            float smallestLambda = float.PositiveInfinity;
-
-            for (int i = 0; i < scene.Length; i++)
-            {
-                float lambda = scene[i].FindHitPoint(ray);
-
-                if (lambda > 0 && lambda < smallestLambda)
-                {
-                    H = ray.Origin + lambda * ray.Direction;
-                    colour = scene[i].Color;
-                    smallestLambda = lambda;
-                    idxSmallestLambda = i;
-                }
-            }
-            return new HitPoint(ray, H, colour, scene[idxSmallestLambda]);
-        }
-
-        public Vector3 CalcColour(Sphere[] scene, Ray ray)
-        {
-            HitPoint hitpoint = FindClosestHitPoint(scene, ray);
-            return hitpoint.Color;
-        }
-
-        public Vector3 CalcColourWithDiffuse(Sphere[] scene, Ray ray)
-        {
-            HitPoint hitpoint = FindClosestHitPoint(scene, ray);
-            Vector3 diffLight = Vector3.Zero;
-
-            Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
-            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
-            float nL = Vector3.Dot(n, l);
-
-            if(nL >= 0)
-            {
-                Vector3 ilm = Vector3.Multiply(lightIntensity, hitpoint.Sphere.Color);       // Normalize???        
-                diffLight = Vector3.Multiply(ilm, nL);
-            }
-            return diffLight;
-        }
-
-        public Vector3 CalcColorWithDiffuseAndPhong(Sphere[] scene, Ray ray)
-        {
-            HitPoint hitpoint = FindClosestHitPoint(scene, ray);
-            Vector3 phong = Vector3.Zero;
-            
-            Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
-            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
-            float nL = Vector3.Dot(n, l);
-
-            if (nL >= 0)
-            {                
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
-                Vector3 s = l - Vector3.Dot(l, n) * n; 
-                Vector3 r = Vector3.Normalize(l - 2 * s);
-                
-                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), k);
-                phong = lightIntensity * phongFactor;
-            }
-
-            return phong + CalcColourWithDiffuse(scene, ray);
-        }
-
-        public Vector3 CalcColorWithDiffuseAndPhongAndShadows(Sphere[] scene, Ray ray)
-        {
-            HitPoint hitpoint = FindClosestHitPoint(scene, ray);
-            Vector3 phong = Vector3.Zero;
-
-            Vector3 n = Vector3.Normalize(Vector3.Subtract(hitpoint.H, hitpoint.Sphere.Center));
-            Vector3 l = Vector3.Normalize(Vector3.Subtract(lightPos, hitpoint.H));
-            float nL = Vector3.Dot(n, l);
-
-            if (nL >= 0)
-            {
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
-                Vector3 s = l - Vector3.Dot(l, n) * n;
-                Vector3 r = Vector3.Normalize(l - 2 * s);
-
-                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), k);
-                phong = lightIntensity * phongFactor;
-            }
-
-            Vector3 phongAndDiffuse = phong + CalcColourWithDiffuse(scene, ray);
-            float shadow = 1.0f;
-
-            Ray LightRay = new Ray(hitpoint.H, Vector3.Normalize(lightPos - hitpoint.H));
-            LightRay.Origin += LightRay.Direction * 0.001f;
-
-            for (int i = 0; i < scene.Length; i++)
-            {
-                float Lambda = scene[i].FindHitPoint(LightRay);
-                if (Lambda != 0 && Lambda < LightRay.Direction.Length())
-                {
-                    shadow = 0f;
-                    break;
-                }
-            }
-
-            return phongAndDiffuse * shadow;
-        }
+                        
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            int bytesPerPixel = 4; 
+            PrintScene();
+        }
+
+        public void PrintScene()
+        {
+            Scene scene = new Scene(spheres);
+            int bytesPerPixel = 4;
             byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
 
             for (int x = 0; x < image.PixelWidth; x++)
             {
                 for (int y = 0; y < image.PixelHeight; y++)
                 {
-                    //Vector3 color = CalcColour(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));                      // Plain
-                    //Vector3 color = CalcColourWithDiffuse(scene, CreateEyeRay(eye, lookAt, FOV, rnew Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));             // Diffuse Light
-                    //Vector3 color = CalcColorWithDiffuseAndPhong(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong
-                    Vector3 color = CalcColorWithDiffuseAndPhongAndShadows(scene, CreateEyeRay(eye, lookAt, FOV, new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));        // Diffuse & Phong & Shadows
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClamp8(color.Z);            // Blue
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClamp8(color.Y);        // Green
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClamp8(color.X);        // Red
+                    Vector3 color = scene.CalcColour(checkBoxControl, scene.CreateEyeRay(new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClampAndGammaCorrect(color.Z);            // Blue
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClampAndGammaCorrect(color.Y);        // Green
+                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClampAndGammaCorrect(color.X);        // Red
                 }
             }
 
@@ -178,9 +160,10 @@ namespace CornellBoxWPF
             img.Source = image;
         }
 
-        private byte ConvertAndClamp8(float n)
+        private byte ConvertAndClampAndGammaCorrect(float color)
         {
-            int x = (int)Math.Round(255 * n, 0);
+            float gamma_corrected = (float)Math.Pow(color, 1f / GAMMA);
+            int x = (int)Math.Round(255 * gamma_corrected, 0);
 
             if (x > 255)
                 return 255;

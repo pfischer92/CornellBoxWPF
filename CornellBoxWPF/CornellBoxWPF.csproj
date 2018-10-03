@@ -56,9 +56,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="HitPoint.cs" />
-    <Compile Include="Ray.cs" />
-    <Compile Include="Sphere.cs" />
+    <Compile Include="Geometrics\HitPoint.cs" />
+    <Compile Include="Light\Light.cs" />
+    <Compile Include="Light\Lighting.cs" />
+    <Compile Include="Geometrics\Ray.cs" />
+    <Compile Include="Geometrics\Scene.cs" />
+    <Compile Include="Geometrics\Sphere.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -98,5 +101,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

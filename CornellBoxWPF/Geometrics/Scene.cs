@@ -14,7 +14,7 @@ namespace CornellBoxWPF
         public static Vector3 lightIntensity = new Vector3(1.0f, 1.0f, 1.0f);
         public static float FOV = (float)(36 * Math.PI / 180);
         public static int k = 40;
-        public static int reflectionFactorMax = 10;
+        public static int reflectionFactorMax = 2;
         public static int reflectionStep = 0;
 
         private List<Sphere> Spheres = new List<Sphere>();
@@ -148,25 +148,19 @@ namespace CornellBoxWPF
             // Case 5: Reflections
             if (checkBoxControl.IsReflectionCheckBoxChecked)
             {
-                if (hitpoint.Sphere.Reflection && reflectionStep < reflectionFactorMax)
+                if (hitpoint.Sphere.Reflection && reflectionStep < 10)
                 {
-                    reflectionStep++;
-
-                    Vector3 l1 = Vector3.Normalize(eye -hitpoint.H);
+                    Vector3 l1 = Vector3.Normalize(eye - hitpoint.H);
                     Vector3 r2 = 2 * (Vector3.Dot(l1, n)) * n - l1;
 
-                    Vector3 col = CalcColour(checkBoxControl, new Ray(hitpoint.H, r2));
+                    Vector3 col = CalcColour(checkBoxControl, new Ray(eye, r2), reflectionStep + 1);
 
                     if (col.X > 0 || col.Y > 0 || col.Z > 0)
                     {
                         color += col * 0.4f;
                     }
-
-
                 }
             }
-
-
 
             return color;
 

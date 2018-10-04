@@ -8,12 +8,14 @@ namespace CornellBoxWPF
 {
     public class Lighting
     {
-        List<Light> Lights = new List<Light>();
-
+        public List<Light> Lights { get; set; }
 
         public Lighting(List<Light> lights)
         {
             Lights = lights;
+
         }
+
+        public Lighting() { }
     }
 }

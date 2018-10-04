@@ -114,7 +114,7 @@ namespace CornellBoxWPF
 
         public MainWindow()
         {
-            image = new WriteableBitmap(600, 600, 96, 96, PixelFormats.Bgr32, null);
+            image = new WriteableBitmap(600, 600, 96, 96, PixelFormats.Rgb24, null);
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             checkBoxControl = new CheckBoxControl(this);
@@ -129,7 +129,10 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true),
                                     new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), true)};
 
-                        
+
+        public Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)) });      // White light
+                                    //new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),                                 // Red light
+                                    //new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});                                // Blue light
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -138,8 +141,8 @@ namespace CornellBoxWPF
 
         public void PrintScene()
         {
-            Scene scene = new Scene(spheres);
-            int bytesPerPixel = 4;
+            Scene scene = new Scene(spheres, lights);
+            int bytesPerPixel = 3;
             byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
 
             for (int x = 0; x < image.PixelWidth; x++)
@@ -147,9 +150,9 @@ namespace CornellBoxWPF
                 for (int y = 0; y < image.PixelHeight; y++)
                 {
                     Vector3 color = scene.CalcColour(checkBoxControl, scene.CreateEyeRay(new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClampAndGammaCorrect(color.Z);            // Blue
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClampAndGammaCorrect(color.Y);        // Green
-                    colourData[(x * 4 + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClampAndGammaCorrect(color.X);        // Red
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClampAndGammaCorrect(color.X);            // Red
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClampAndGammaCorrect(color.Y);        // Blue
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClampAndGammaCorrect(color.Z);        // Green
                 }
             }
 

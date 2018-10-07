@@ -21,6 +21,7 @@ namespace CornellBoxWPF
             private bool isSpecularCheckBoxChecked;
             private bool isShadowCheckBoxChecked;
             private bool isReflectionCheckBoxChecked;
+            private bool isProceduralTextureCheckBoxChecked;
 
             public bool IsDiffuseCheckBoxChecked
             {
@@ -89,6 +90,23 @@ namespace CornellBoxWPF
                 }
             }
 
+            public bool IsProceduralTextureCheckBoxChecked
+            {
+                get
+                {
+                    return isProceduralTextureCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isProceduralTextureCheckBoxChecked != value)
+                    {
+                        isProceduralTextureCheckBoxChecked = value;
+                        NotifyPropertChanged("isProceduralTextureCheckBoxChecked has changed");
+                    }
+                }
+            }
+
             public event PropertyChangedEventHandler PropertyChanged;
 
             public void NotifyPropertChanged(string propertyName)
@@ -103,6 +121,7 @@ namespace CornellBoxWPF
                 isSpecularCheckBoxChecked = false;
                 isShadowCheckBoxChecked = false;
                 isReflectionCheckBoxChecked = false;
+                isProceduralTextureCheckBoxChecked = false;
                 _window = window;
             }
         }
@@ -126,8 +145,8 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0, 0, 1001), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, 1001, 0), 1000, new Vector3(1, 1, 1)),
-                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true),
-                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), true)};
+                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), false),
+                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), false, true)};
 
 
         public Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)) });      // White light

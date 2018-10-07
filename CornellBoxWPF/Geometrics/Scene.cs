@@ -10,12 +10,11 @@ namespace CornellBoxWPF
         public static Vector3 eye = new Vector3(0, 0, -4);
         public static Vector3 lookAt = new Vector3(0, 0, 6);
         public static Vector3 up = new Vector3(0, 1, 0);
-        //public static Vector3 lightPos = new Vector3(0.0f, -0.9f, 0);
-        //public static Vector3 lightIntensity = new Vector3(1.0f, 1.0f, 1.0f);
         public static float FOV = (float)(36 * Math.PI / 180);
         public static int k = 40;
         public static int reflectionFactorMax = 2;
         public static int reflectionStep = 0;
+        public static int proceduralCounter = 0;
 
         private List<Sphere> Spheres = new List<Sphere>();
         private Lighting Lighting = new Lighting();
@@ -107,17 +106,34 @@ namespace CornellBoxWPF
                 Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
                 Vector3 r = Vector3.Normalize(l - 2 * s);
 
-                // Case 1: Simple Ray Tracing 
-                color = hitpoint.Color;
+                // Case 6: Procedural Textures
+                if(checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint.Sphere.ProceduralTexture)
+                {
+                    if (proceduralCounter % 2 == 0)
+                    {
+                        color = new Vector3(0, 0, 0);
+                    }
+                    else
+                    {
+                        color = new Vector3(1, 0, 0);
+                    }
 
-                // Case 2: Diffuse7Lambert Light
+                    proceduralCounter++;
+                }
+                else
+                {
+                    // Case 1: Simple Ray Tracing 
+                    color = hitpoint.Color;
+                }                
+
+                // Case 2: Diffuse/Lambert Light
                 if (checkBoxControl.IsDiffuseCheckBoxChecked)
                 {
                     Vector3 diffLight = Vector3.Zero;
 
                     if (nL >= 0)
                     {
-                        diffLight = light.Color * hitpoint.Sphere.Color * nL;
+                        diffLight = light.Color * color * nL;
                     }
                     color = diffLight;
                 }

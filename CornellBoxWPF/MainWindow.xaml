@@ -11,6 +11,7 @@
         <CheckBox IsChecked="{Binding IsSpecularCheckBoxChecked}" x:Name="Specular" Content="Specular/Phong" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="120,2" />
         <CheckBox IsChecked="{Binding IsShadowCheckBoxChecked}" x:Name="Shadow" Content="Shadows" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="240,2" />
         <CheckBox IsChecked="{Binding IsReflectionCheckBoxChecked}" x:Name="Reflection" Content="Reflections" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="340,2" />
+        <CheckBox IsChecked="{Binding IsProceduralTextureCheckBoxChecked}" x:Name="ProceduralTexture" Content="Procedural Texture" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="420,2" />
         <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0" />
     </Grid>
 </Window>

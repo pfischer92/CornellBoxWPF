@@ -13,7 +13,6 @@ namespace CornellBoxWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-
         public class CheckBoxControl : INotifyPropertyChanged
         {
             private MainWindow _window;
@@ -145,24 +144,15 @@ namespace CornellBoxWPF
                 _window = window;
             }
         }
-        public WriteableBitmap image { get; set; }
+        public static WriteableBitmap image { get; set; }
 
         public static float GAMMA = 2.2f;
         public static int bytesPerPixel = 3;
         public static int antiAliasing = 4;
 
-        public CheckBoxControl checkBoxControl;
+        public static CheckBoxControl checkBoxControl;
 
-        public MainWindow()
-        {
-            image = new WriteableBitmap(600, 600, 96, 96, PixelFormats.Rgb24, null);
-            InitializeComponent();
-            Loaded += MainWindow_Loaded;
-            checkBoxControl = new CheckBoxControl(this);
-            DataContext = checkBoxControl;
-        }
-
-        public List<Sphere> spheres = new List<Sphere>{ new Sphere(new Vector3(-1001, 0, 0), 1000, new Vector3(0, 0, 1)),
+        public static List<Sphere> spheres = new List<Sphere>{ new Sphere(new Vector3(-1001, 0, 0), 1000, new Vector3(0, 0, 1)),
                                     new Sphere(new Vector3(1001, 0, 0), 1000, new Vector3(1, 0, 0)),
                                     new Sphere(new Vector3(0, 0, 1001), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
@@ -171,9 +161,20 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), false, true, false)};
 
 
-        public Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)) });      // White light
-                                    //new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),                                 // Red light
-                                    //new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});                                // Blue light
+        public static Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)) });      // White light
+                                                                                                                                                      //new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),    // Red light
+                                                                                                                                                      //new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});  // Blue light
+        public static Scene scene = new Scene(spheres, lights);
+        public static Gaussian rd = new Gaussian();
+
+        public MainWindow()
+        {
+            image = new WriteableBitmap(500, 500, 96, 96, PixelFormats.Rgb24, null);
+            InitializeComponent();
+            Loaded += MainWindow_Loaded;
+            checkBoxControl = new CheckBoxControl(this);
+            DataContext = checkBoxControl;
+        }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -182,10 +183,7 @@ namespace CornellBoxWPF
 
         public void PrintScene()
         {
-            Scene scene = new Scene(spheres, lights);
-            Gaussian rd = new Gaussian();
             byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
-
             for (int x = 0; x < image.PixelWidth; x++)
             {
                 for (int y = 0; y < image.PixelHeight; y++)
@@ -219,12 +217,8 @@ namespace CornellBoxWPF
             float gamma_corrected = (float)Math.Pow(color, 1f / GAMMA);
             int x = (int)Math.Round(255 * gamma_corrected, 0);
 
-            if (x > 255)
-                return 255;
-
-            if (x < 0)
-                return 0;
-
+            if (x > 255) return 255;
+            if (x < 0) return 0;
             return (byte)x;
         }
     }

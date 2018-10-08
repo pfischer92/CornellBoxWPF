@@ -22,6 +22,8 @@ namespace CornellBoxWPF
             private bool isShadowCheckBoxChecked;
             private bool isReflectionCheckBoxChecked;
             private bool isProceduralTextureCheckBoxChecked;
+            private bool isBitmapTextureCheckBoxChecked;
+
 
             public bool IsDiffuseCheckBoxChecked
             {
@@ -107,6 +109,23 @@ namespace CornellBoxWPF
                 }
             }
 
+            public bool IsBitmapTextureCheckBoxChecked
+            {
+                get
+                {
+                    return isBitmapTextureCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isBitmapTextureCheckBoxChecked != value)
+                    {
+                        isBitmapTextureCheckBoxChecked = value;
+                        NotifyPropertChanged("isBitmapTextureCheckBoxChecked has changed");
+                    }
+                }
+            }
+
             public event PropertyChangedEventHandler PropertyChanged;
 
             public void NotifyPropertChanged(string propertyName)
@@ -122,12 +141,15 @@ namespace CornellBoxWPF
                 isShadowCheckBoxChecked = false;
                 isReflectionCheckBoxChecked = false;
                 isProceduralTextureCheckBoxChecked = false;
+                isBitmapTextureCheckBoxChecked = false;
                 _window = window;
             }
         }
         public WriteableBitmap image { get; set; }
 
         public static float GAMMA = 2.2f;
+        public static int bytesPerPixel = 3;
+        public static int antiAliasing = 4;
 
         public CheckBoxControl checkBoxControl;
 
@@ -146,7 +168,7 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, 1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), false),
-                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), false, true)};
+                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), false, true, false)};
 
 
         public Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)) });      // White light
@@ -161,14 +183,24 @@ namespace CornellBoxWPF
         public void PrintScene()
         {
             Scene scene = new Scene(spheres, lights);
-            int bytesPerPixel = 3;
+            Gaussian rd = new Gaussian();
             byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
 
             for (int x = 0; x < image.PixelWidth; x++)
             {
                 for (int y = 0; y < image.PixelHeight; y++)
                 {
-                    Vector3 color = scene.CalcColour(checkBoxControl, scene.CreateEyeRay(new Vector2((float)2.0 / image.PixelWidth * x - 1, (float)2.0 / image.PixelHeight * y - 1)));
+                    Vector3 color = Vector3.Zero;
+                    for (int i = 0; i < antiAliasing; i++)
+                    {
+                        float tmp_x = (float)rd.RandomGauss(x, 0.5f);
+                        float tmp_y = (float)rd.RandomGauss(y, 0.5f);
+                        Vector2 coord = new Vector2((float)2.0 / image.PixelWidth * tmp_x - 1, (float)2.0 / image.PixelHeight * tmp_y - 1);
+                        color += scene.CalcColour(checkBoxControl, scene.CreateEyeRay(coord));
+                    }
+
+                    color = color / antiAliasing;
+                    
                     colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClampAndGammaCorrect(color.X);            // Red
                     colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClampAndGammaCorrect(color.Y);        // Blue
                     colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClampAndGammaCorrect(color.Z);        // Green
@@ -182,7 +214,7 @@ namespace CornellBoxWPF
             img.Source = image;
         }
 
-        private byte ConvertAndClampAndGammaCorrect(float color)
+        private static byte ConvertAndClampAndGammaCorrect(float color)
         {
             float gamma_corrected = (float)Math.Pow(color, 1f / GAMMA);
             int x = (int)Math.Round(255 * gamma_corrected, 0);

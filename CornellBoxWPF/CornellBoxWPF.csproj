@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,12 +57,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Acceleration\BHV.cs" />
+    <Compile Include="BitmapHelper\BitmapTexturing.cs" />
     <Compile Include="Geometrics\HitPoint.cs" />
     <Compile Include="Light\Light.cs" />
     <Compile Include="Light\Lighting.cs" />
     <Compile Include="Geometrics\Ray.cs" />
     <Compile Include="Geometrics\Scene.cs" />
     <Compile Include="Geometrics\Sphere.cs" />
+    <Compile Include="Gaussian.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -102,5 +106,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Resource Include="BitmapHelper\wall.bmp" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

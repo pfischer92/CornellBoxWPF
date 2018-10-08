@@ -13,7 +13,6 @@ namespace CornellBoxWPF
         public Lighting(List<Light> lights)
         {
             Lights = lights;
-
         }
 
         public Lighting() { }

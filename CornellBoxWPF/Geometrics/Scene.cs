@@ -124,7 +124,7 @@ namespace CornellBoxWPF
                 {
                     // Case 1: Simple Ray Tracing 
                     color = hitpoint.Color;
-                }                
+                }    
 
                 // Case 2: Diffuse/Lambert Light
                 if (checkBoxControl.IsDiffuseCheckBoxChecked)

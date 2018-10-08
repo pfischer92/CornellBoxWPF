@@ -14,13 +14,16 @@ namespace CornellBoxWPF
         public Vector3 Color { get; set; }
         public bool Reflection { get; set; }
         public bool ProceduralTexture { get; set; }
-        public Sphere(Vector3 center, float radius, Vector3 color, bool reflection = false, bool procedualTexture = false)
+
+        public bool BitmapTexture { get; set; }
+        public Sphere(Vector3 center, float radius, Vector3 color, bool reflection = false, bool procedualTexture = false, bool bitmapTexture = false)
         {
             Center = center;
             Radius = radius;
             Color = color;
             Reflection = reflection;
             ProceduralTexture = procedualTexture;
+            BitmapTexture = bitmapTexture;
         }
         public Sphere()
         {

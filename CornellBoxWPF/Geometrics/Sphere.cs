@@ -15,7 +15,7 @@ namespace CornellBoxWPF
         public bool _reflection { get; set; }
         public bool _proceduralTexture { get; set; }
 
-        public bool BitmapTexture { get; set; }
+        public bool _bitmapTexture { get; set; }
         public Sphere(Vector3 center, float radius, Vector3 color, bool reflection = false, bool procedualTexture = false, bool bitmapTexture = false)
         {
             _center = center;
@@ -23,7 +23,7 @@ namespace CornellBoxWPF
             _color = color;
             _reflection = reflection;
             _proceduralTexture = procedualTexture;
-            BitmapTexture = bitmapTexture;
+            _bitmapTexture = bitmapTexture;
         }
     }
 }

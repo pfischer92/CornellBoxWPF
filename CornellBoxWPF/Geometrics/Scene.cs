@@ -7,46 +7,45 @@ namespace CornellBoxWPF
 {
     public class Scene
     {
-        public static Vector3 eye = new Vector3(0, 0, -4);
-        public static Vector3 lookAt = new Vector3(0, 0, 6);
-        public static Vector3 up = new Vector3(0, 1, 0);
-        public static float FOV = (float)(36 * Math.PI / 180);
-        public static int k = 40;
-        public static int reflectionFactorMax = 2;
-        public static int reflectionStep = 0;
-        public static int proceduralCounter = 0;
+        public static Vector3 _eye = new Vector3(0, 0, -4);
+        public static Vector3 _lookAt = new Vector3(0, 0, 6);
+        public static Vector3 _up = new Vector3(0, 1, 0);
+        public static float _FOV = (float)(36 * Math.PI / 180);
+        public static int _k = 40;
+        public static int _reflectionFactorMax = 2;
+        public static int _reflectionStep = 5;
+        public static int _proceduralCounter = 0;
 
-        private List<Sphere> Spheres = new List<Sphere>();
-        private Lighting Lighting = new Lighting();
+        private List<Sphere> _spheres = new List<Sphere>();
+        private Lighting _lighting = new Lighting();
 
         public Scene(List<Sphere> spheres, Lighting lighting)
         {
-            Spheres = spheres;
-            Lighting = lighting;
+            _spheres = spheres;
+            _lighting = lighting;
         }
 
         public Ray CreateEyeRay(Vector2 pixel)
         {
-            Vector3 f = Vector3.Normalize(lookAt - eye);
-            Vector3 r = Vector3.Normalize(Vector3.Cross(f, up));
+            Vector3 f = Vector3.Normalize(_lookAt - _eye);
+            Vector3 r = Vector3.Normalize(Vector3.Cross(f, _up));
             Vector3 u = Vector3.Normalize(Vector3.Cross(r, f));
-            Vector3 d = f + pixel.X * r * (float)Math.Tan(FOV / 2) + pixel.Y * u * (float)Math.Tan(FOV / 2);
+            Vector3 d = f + pixel.X * r * (float)Math.Tan(_FOV / 2) + pixel.Y * u * (float)Math.Tan(_FOV / 2);
 
-            return new Ray(eye, Vector3.Normalize(d));
+            return new Ray(_eye, Vector3.Normalize(d));
         }
 
         public float FindHitPoint(Ray ray, Sphere sp)
         {
             var a = 1;
-            var cE = ray.Origin - sp.Center;
-            var b = 2 * Vector3.Dot(cE, ray.Direction);
-            var c = cE.Length() * cE.Length() - sp.Radius * sp.Radius;
+            var cE = ray._origin - sp._center;
+            var b = 2 * Vector3.Dot(cE, ray._direction);
+            var c = cE.Length() * cE.Length() - sp._radius * sp._radius;
             var discriminant = b * b - 4 * a * c;
             var determinant = Math.Sqrt(discriminant);
 
             if (discriminant >= 0)
-            { //at least one hit
-
+            { 
                 var lambda1 = (-b + determinant) / (2 * a);
                 var lambda2 = (-b - determinant) / (2 * a);
 
@@ -68,19 +67,19 @@ namespace CornellBoxWPF
 
         public HitPoint FindClosestHitPoint(Ray ray)
         {
-            Vector3 H = new Vector3(0, 0, 0);
-            Vector3 colour = new Vector3(0, 0, 0);
-            Sphere closestSphere = new Sphere();
+            Vector3 H = Vector3.Zero;
+            Vector3 colour = Vector3.Zero;
+            Sphere closestSphere = null;
             float smallestLambda = float.PositiveInfinity;
 
-            foreach(Sphere sp in Spheres)
+            foreach(Sphere sp in _spheres)
             {
                 float lambda = FindHitPoint(ray, sp);
 
                 if (lambda > 0 && lambda < smallestLambda)
                 {
-                    H = ray.Origin + lambda * ray.Direction;
-                    colour = sp.Color;
+                    H = ray._origin + lambda * ray._direction;
+                    colour = sp._color;
                     smallestLambda = lambda;
                     closestSphere = sp;
                 }
@@ -91,39 +90,39 @@ namespace CornellBoxWPF
         public Vector3 CalcColour(CheckBoxControl checkBoxControl, Ray ray, int reflectionFactor = 0)
         {            
             HitPoint hitpoint = FindClosestHitPoint(ray);
-            Vector3 color = new Vector3(0, 0, 0);
+            Vector3 color = Vector3.Zero;
 
             // No hitpoint found
-            if (hitpoint == null){ return Vector3.Zero;}
+            if (hitpoint == null || hitpoint._sphere == null){ return Vector3.Zero;}
 
-            foreach (Light light in Lighting.Lights)
+            foreach (Light light in _lighting._lights)
             {
                 // Get overall settings
-                Vector3 n = Vector3.Normalize(hitpoint.H - hitpoint.Sphere.Center);     // Normal vector of hitpoint
-                Vector3 l = Vector3.Normalize(Vector3.Subtract(light.Position, hitpoint.H));
+                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);     // Normal vector of hitpoint
+                Vector3 l = Vector3.Normalize(Vector3.Subtract(light._position, hitpoint._h));
                 float nL = Vector3.Dot(n, l);
                 Vector3 s = l - Vector3.Dot(l, n) * n;
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(eye, hitpoint.H));
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._h));
                 Vector3 r = Vector3.Normalize(l - 2 * s);
 
                 // Case 6: Procedural Textures
-                if(checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint.Sphere.ProceduralTexture)
+                if(checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture)
                 {
-                    if (proceduralCounter % 2 == 0)
+                    if (_proceduralCounter % 2 == 0)
                     {
-                        color = new Vector3(0, 0, 0);
+                        color = Vector3.Zero;
                     }
                     else
                     {
                         color = new Vector3(1, 0, 0);
                     }
 
-                    proceduralCounter++;
+                    _proceduralCounter++;
                 }
                 else
                 {
                     // Case 1: Simple Ray Tracing 
-                    color = hitpoint.Color;
+                    color = hitpoint._color;
                 }    
 
                 // Case 2: Diffuse/Lambert Light
@@ -133,7 +132,7 @@ namespace CornellBoxWPF
 
                     if (nL >= 0)
                     {
-                        diffLight = light.Color * color * nL;
+                        diffLight = light._color * color * nL;
                     }
                     color = diffLight;
                 }
@@ -143,8 +142,8 @@ namespace CornellBoxWPF
                 {
                     if (nL >= 0)
                     {
-                        float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), k);
-                        Vector3 phong = light.Color * phongFactor;
+                        float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), _k);
+                        Vector3 phong = light._color * phongFactor;
                         color = color + phong;
                     }
                 }
@@ -152,26 +151,26 @@ namespace CornellBoxWPF
                 // Case 4: Shadows
                 if (checkBoxControl.IsShadowCheckBoxChecked)
                 {
-                    Ray lightRay = new Ray(hitpoint.H, Vector3.Normalize(light.Position - hitpoint.H));
-                    lightRay.Origin += lightRay.Direction * 0.001f;
+                    Ray lightRay = new Ray(hitpoint._h, Vector3.Normalize(light._position - hitpoint._h));
+                    lightRay._origin += lightRay._direction * 0.001f;
                     HitPoint shadow = FindClosestHitPoint(lightRay);
 
-                    if (shadow != null && (shadow.H - hitpoint.H).Length() < (light.Position - hitpoint.H).Length())
+                    if (shadow != null && (shadow._h - hitpoint._h).Length() < (light._position - hitpoint._h).Length())
                     {
-                        color -= light.Color * color * 0.5f;
+                        color -= light._color * color;
                     }
                 }
             }
             // Case 5: Reflections
             if (checkBoxControl.IsReflectionCheckBoxChecked)
                 {
-                    if (hitpoint.Sphere.Reflection && reflectionStep < 10)
+                    if (hitpoint._sphere._reflection && _reflectionStep < 10)
                     {
-                        Vector3 l1 = Vector3.Normalize(eye - hitpoint.H);
-                        Vector3 n2 = Vector3.Normalize(hitpoint.H - hitpoint.Sphere.Center);
+                        Vector3 l1 = Vector3.Normalize(_eye - hitpoint._h);
+                        Vector3 n2 = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);
                         Vector3 r2 = 2 * (Vector3.Dot(l1, n2)) * n2 - l1;
 
-                        Vector3 col = CalcColour(checkBoxControl, new Ray(eye, r2), reflectionStep + 1);
+                        Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
 
                         if (col.X > 0 || col.Y > 0 || col.Z > 0)
                         {

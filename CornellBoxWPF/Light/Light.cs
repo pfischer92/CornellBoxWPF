@@ -10,14 +10,14 @@ namespace CornellBoxWPF
     public class Light
     {
 
-        public Vector3 Position { get; set; }
+        public Vector3 _position { get; set; }
 
-        public Vector3 Color { get; set; }
+        public Vector3 _color { get; set; }
 
         public Light(Vector3 position, Vector3 color)
         {
-            Position = position;
-            Color = color;
+            _position = position;
+            _color = color;
         }
     }
 }

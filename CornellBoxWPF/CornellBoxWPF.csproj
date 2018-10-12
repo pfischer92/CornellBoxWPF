@@ -60,6 +60,7 @@
     <Compile Include="Acceleration\BHV.cs" />
     <Compile Include="BitmapHelper\BitmapTexturing.cs" />
     <Compile Include="Geometrics\HitPoint.cs" />
+    <Compile Include="Helpers\GammaCorrection.cs" />
     <Compile Include="Light\Light.cs" />
     <Compile Include="Light\Lighting.cs" />
     <Compile Include="Geometrics\Ray.cs" />
@@ -105,9 +106,10 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <Resource Include="BitmapHelper\wall.bmp" />
+    <Content Include="sample-bitmap.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

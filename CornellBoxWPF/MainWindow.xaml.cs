@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CornellBoxWPF.Helpers;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
@@ -148,7 +149,7 @@ namespace CornellBoxWPF
 
         public static float GAMMA = 2.2f;
         public static int bytesPerPixel = 3;
-        public static int antiAliasing = 2;
+        public static int antiAliasing = 1;
 
         public static CheckBoxControl checkBoxControl;
 
@@ -157,15 +158,15 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0, 0, 1001), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, 1001, 0), 1000, new Vector3(1, 1, 1)),
-                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true),
-                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(1, 0, 1), true)};
+                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true, false, true),
+                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(0, 1, 1), true, true, false)};
 
 
         public static Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)),      // White light
                                                                        new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),    // Blue light
                                                                        new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f))});  // Red light
         public static Scene scene = new Scene(spheres, lights);
-        public static Gaussian rd = new Gaussian();
+        public static Gaussian rd = new Gaussian();        
 
         public MainWindow()
         {
@@ -199,9 +200,9 @@ namespace CornellBoxWPF
 
                     color = color / antiAliasing;
                     
-                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = ConvertAndClampAndGammaCorrect(color.X);            // Red
-                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = ConvertAndClampAndGammaCorrect(color.Y);        // Blue
-                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = ConvertAndClampAndGammaCorrect(color.Z);        // Green
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.X);            // Red
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 1)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Y);        // Blue
+                    colourData[(x * bytesPerPixel + y * image.PixelHeight * bytesPerPixel + 2)] = GammaCorrection.ConvertAndClampAndGammaCorrect(color.Z);        // Green
                 }
             }
 
@@ -210,16 +211,6 @@ namespace CornellBoxWPF
             image.Unlock();
 
             img.Source = image;
-        }
-
-        private static byte ConvertAndClampAndGammaCorrect(float color)
-        {
-            float gamma_corrected = (float)Math.Pow(color, 1f / GAMMA);
-            int x = (int)Math.Round(255 * gamma_corrected, 0);
-
-            if (x > 255) return 255;
-            if (x < 0) return 0;
-            return (byte)x;
         }
     }
 }

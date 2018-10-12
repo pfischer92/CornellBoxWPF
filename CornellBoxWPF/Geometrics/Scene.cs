@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CornellBoxWPF.BitmapHelper;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using static CornellBoxWPF.MainWindow;
@@ -18,6 +19,7 @@ namespace CornellBoxWPF
 
         private List<Sphere> _spheres = new List<Sphere>();
         private Lighting _lighting = new Lighting();
+        BitmapTexturing bitmapTexturing = new BitmapTexturing();
 
         public Scene(List<Sphere> spheres, Lighting lighting)
         {
@@ -87,6 +89,44 @@ namespace CornellBoxWPF
             return new HitPoint(ray, H, colour, closestSphere);
         }
 
+        public static Vector3 getDiffuseLight(float nL, Vector3 lightColor, Vector3 sphereColor)
+        {
+            Vector3 diffLight = Vector3.Zero;
+            if (nL >= 0)
+            {
+                diffLight = lightColor * sphereColor * nL;
+            }
+
+            return diffLight;
+        }
+
+        public static Vector3 getSpecularLight(float nL, Vector3 lightColor, Vector3 sphereColor, Vector3 r, Vector3 EH)
+        {
+            Vector3 specularLight = Vector3.Zero;
+            if (nL >= 0)
+            {
+                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), _k);
+                specularLight = sphereColor + lightColor * phongFactor;
+            }
+
+            return specularLight;
+        }
+
+        public Vector3 getShadowLight(Light light, Vector3 sphereColor, HitPoint hitPoint)
+        {
+            Vector3 shadowLight = Vector3.Zero;
+            Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(light._position - hitPoint._h));
+            lightRay._origin += lightRay._direction * 0.001f;
+            HitPoint shadow = FindClosestHitPoint(lightRay);
+
+            if (shadow != null && (shadow._h - hitPoint._h).Length() < (light._position - hitPoint._h).Length())
+            {
+                shadowLight = light._color * sphereColor;
+            }
+
+            return shadowLight;
+        }
+
         public Vector3 CalcColour(CheckBoxControl checkBoxControl, Ray ray, int reflectionFactor = 0)
         {            
             HitPoint hitpoint = FindClosestHitPoint(ray);
@@ -105,10 +145,22 @@ namespace CornellBoxWPF
                 Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._h));
                 Vector3 r = Vector3.Normalize(l - 2 * s);
 
+                // Case 1: Simple Ray Tracing 
+                color = hitpoint._color;               
+
+                // Case 2: Diffuse/Lambert Light
+                if (checkBoxControl.IsDiffuseCheckBoxChecked) { color = getDiffuseLight(nL, light._color, color); }
+
+                // Case 3: Phong/Specular
+                if (checkBoxControl.IsSpecularCheckBoxChecked) { color = getSpecularLight(nL, light._color, color, r, EH); }
+
+                // Case 4: Shadows
+                if (checkBoxControl.IsShadowCheckBoxChecked) { color -= getShadowLight(light, color, hitpoint); }
+
                 // Case 6: Procedural Textures
-                if(checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture)
+                if (checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture)
                 {
-                    if (_proceduralCounter % 2 == 0)
+                    if (_proceduralCounter % 10 == 0)
                     {
                         color = Vector3.Zero;
                     }
@@ -119,47 +171,9 @@ namespace CornellBoxWPF
 
                     _proceduralCounter++;
                 }
-                else
-                {
-                    // Case 1: Simple Ray Tracing 
-                    color = hitpoint._color;
-                }    
 
-                // Case 2: Diffuse/Lambert Light
-                if (checkBoxControl.IsDiffuseCheckBoxChecked)
-                {
-                    Vector3 diffLight = Vector3.Zero;
-
-                    if (nL >= 0)
-                    {
-                        diffLight = light._color * color * nL;
-                    }
-                    color = diffLight;
-                }
-
-                // Case 3: Phong/Specular
-                if (checkBoxControl.IsSpecularCheckBoxChecked)
-                {
-                    if (nL >= 0)
-                    {
-                        float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), _k);
-                        Vector3 phong = light._color * phongFactor;
-                        color = color + phong;
-                    }
-                }
-
-                // Case 4: Shadows
-                if (checkBoxControl.IsShadowCheckBoxChecked)
-                {
-                    Ray lightRay = new Ray(hitpoint._h, Vector3.Normalize(light._position - hitpoint._h));
-                    lightRay._origin += lightRay._direction * 0.001f;
-                    HitPoint shadow = FindClosestHitPoint(lightRay);
-
-                    if (shadow != null && (shadow._h - hitpoint._h).Length() < (light._position - hitpoint._h).Length())
-                    {
-                        color -= light._color * color;
-                    }
-                }
+                // Case 7: Bitmap textures
+                if (checkBoxControl.IsBitmapTextureCheckBoxChecked && hitpoint._sphere._bitmapTexture) { color = bitmapTexturing.GetBitmapColor(n.X, n.Y, n.Z); }
             }
             // Case 5: Reflections
             if (checkBoxControl.IsReflectionCheckBoxChecked)

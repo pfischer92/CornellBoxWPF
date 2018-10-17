@@ -167,7 +167,7 @@ namespace CornellBoxWPF
 
         public static float GAMMA = 2.2f;
         public static int bytesPerPixel = 3;
-        public static int antiAliasing = 1;
+        public static int antiAliasing = 5;
 
         public static CheckBoxControl checkBoxControl;
 
@@ -176,13 +176,13 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0, 0, 1001), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, -1001, 0), 1000, new Vector3(1, 1, 1)),
                                     new Sphere(new Vector3(0, 1001, 0), 1000, new Vector3(1, 1, 1)),
-                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true, false, true),
-                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(0, 1, 1), true, true, false)};
+                                    new Sphere(new Vector3(-0.6f, 0.7f, -0.6f), 0.3f, new Vector3(1, 1, 0), true, true, false),
+                                    new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(0, 1, 1), false, false, true)};
 
 
         public static Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)),      // White light
                                                                        new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),    // Blue light
-                                                                       new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f))});  // Red light
+                                                                       new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});  // Red light
         public static Scene scene = new Scene(spheres, lights);
         public static Gaussian rd = new Gaussian();        
 

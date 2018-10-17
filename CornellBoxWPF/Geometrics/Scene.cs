@@ -99,19 +99,19 @@ namespace CornellBoxWPF
             return diffLight;
         }
 
-        public static Vector3 GetSpecularLight(float nL, Vector3 lightColor, Vector3 sphereColor, Vector3 r, Vector3 EH)
+        public static Vector3 GetSpecularLight(float nL, HitPoint hitPoint, Vector3 lightColor, Vector3 r, Vector3 EH)
         {
             Vector3 specularLight = Vector3.Zero;
             if (nL >= 0)
             {
-                float phongFactor = (float)Math.Pow(Math.Max(0, Vector3.Dot(r, EH)), _k);
-                specularLight = sphereColor + lightColor * phongFactor;
+                float phongFactor = Vector3.Dot(r, Vector3.Normalize(hitPoint._h - _eye));
+                specularLight = lightColor * (float)Math.Pow(phongFactor, _k);
             }
 
             return specularLight;
         }
 
-        public Vector3 GetShadowLight(Light light, Vector3 sphereColor, HitPoint hitPoint)
+        public Vector3 GetShadowLight(Light light, HitPoint hitPoint, Vector3 sphereColor)
         {
             Vector3 shadowLight = Vector3.Zero;
             Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(light._position - hitPoint._h));
@@ -131,6 +131,7 @@ namespace CornellBoxWPF
         {            
             HitPoint hitpoint = FindClosestHitPoint(ray);
             Vector3 color = Vector3.Zero;
+            Vector3 diffColor = Vector3.Zero;
 
             // No hitpoint found
             if (hitpoint == null || hitpoint._sphere == null){ return Vector3.Zero;}
@@ -146,16 +147,16 @@ namespace CornellBoxWPF
                 Vector3 r = Vector3.Normalize(l - 2 * s);
 
                 // Case 1: Simple Ray Tracing 
-                color = hitpoint._color;               
+                //color = hitpoint._color;
 
                 // Case 2: Diffuse/Lambert Light
-                if (checkBoxControl.IsDiffuseCheckBoxChecked) { color = GetDiffuseLight(nL, light._color, color); }
+                if (checkBoxControl.IsDiffuseCheckBoxChecked) { color += GetDiffuseLight(nL, light._color, hitpoint._color); }
 
                 // Case 3: Phong/Specular
-                if (checkBoxControl.IsSpecularCheckBoxChecked) { color = GetSpecularLight(nL, light._color, color, r, EH); }
+                if (checkBoxControl.IsSpecularCheckBoxChecked) { color += GetSpecularLight(nL, hitpoint, light._color, r, EH); }                
 
                 // Case 4: Shadows
-                if (checkBoxControl.IsShadowCheckBoxChecked) { color -= GetShadowLight(light, color, hitpoint); }
+                if (checkBoxControl.IsShadowCheckBoxChecked) { color -= GetShadowLight(light, hitpoint, color); }
 
                 // Case 6: Procedural Textures
                 if (checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture){ color = ProceduralTexturing.GetProceduralColor(n.X, n.Y, n.Z);}
@@ -173,11 +174,9 @@ namespace CornellBoxWPF
                         Vector3 r2 = 2 * (Vector3.Dot(l1, n2)) * n2 - l1;
 
                         Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
-
-                        if (col.X > 0 || col.Y > 0 || col.Z > 0)
-                        {
-                            color += col * 0.4f;
-                        }
+                    
+                            color += col * 0.5f;
+                        
                     }
                 }
             

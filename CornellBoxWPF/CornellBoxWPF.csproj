@@ -58,7 +58,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Acceleration\BHV.cs" />
-    <Compile Include="BitmapHelper\BitmapTexturing.cs" />
+    <Compile Include="TexturingHelper\BitmapTexturing.cs" />
     <Compile Include="Geometrics\HitPoint.cs" />
     <Compile Include="Helpers\GammaCorrection.cs" />
     <Compile Include="Light\Light.cs" />
@@ -67,6 +67,7 @@
     <Compile Include="Geometrics\Scene.cs" />
     <Compile Include="Geometrics\Sphere.cs" />
     <Compile Include="Helpers\Gaussian.cs" />
+    <Compile Include="TexturingHelper\ProceduralTexturing.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -23,6 +23,7 @@ namespace CornellBoxWPF
             private bool isReflectionCheckBoxChecked;
             private bool isProceduralTextureCheckBoxChecked;
             private bool isBitmapTextureCheckBoxChecked;
+            private bool isSoftShadowCheckBoxChecked;
 
 
             public bool IsDiffuseCheckBoxChecked
@@ -125,6 +126,22 @@ namespace CornellBoxWPF
                     }
                 }
             }
+            public bool IsSoftShadowCheckBoxChecked
+            {
+                get
+                {
+                    return isSoftShadowCheckBoxChecked;
+                }
+
+                set
+                {
+                    if (isSoftShadowCheckBoxChecked != value)
+                    {
+                        isSoftShadowCheckBoxChecked = value;
+                        NotifyPropertChanged("isSoftShadowCheckBoxChecked has changed");
+                    }
+                }
+            }
 
             public event PropertyChangedEventHandler PropertyChanged;
 
@@ -142,6 +159,7 @@ namespace CornellBoxWPF
                 isReflectionCheckBoxChecked = false;
                 isProceduralTextureCheckBoxChecked = false;
                 isBitmapTextureCheckBoxChecked = false;
+                isSoftShadowCheckBoxChecked = false;
                 _window = window;
             }
         }

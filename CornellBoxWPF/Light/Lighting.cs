@@ -4,9 +4,9 @@ namespace CornellBoxWPF
 {
     public class Lighting
     {
-        public List<Light> _lights { get; set; }
+        public List<LightSource> _lights { get; set; }
 
-        public Lighting(List<Light> lights)
+        public Lighting(List<LightSource> lights)
         {
             _lights = lights;
         }

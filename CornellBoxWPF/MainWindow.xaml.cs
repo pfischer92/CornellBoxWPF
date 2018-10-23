@@ -180,9 +180,10 @@ namespace CornellBoxWPF
                                     new Sphere(new Vector3(0.3f, 0.4f, 0.3f), 0.6f, new Vector3(0, 1, 1), false, false, true)};
 
 
-        public static Lighting lights = new Lighting(new List<Light> { new Light(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)),      // White light
-                                                                       new Light(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),    // Blue light
-                                                                       new Light(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});  // Red light
+        public static Lighting lights = new Lighting(new List<LightSource> { new LightSource(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f)),      // White light
+                                                                       new LightSource(new Vector3(-0.4f, -0.9f, 0), new Vector3(0.0f, 0.0f, 1.0f)),    // Blue light
+                                                                       new LightSource(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});  // Red light
+       
         public static Scene scene = new Scene(spheres, lights);
         public static Gaussian rd = new Gaussian();        
 
@@ -197,7 +198,7 @@ namespace CornellBoxWPF
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            PrintScene();
+            PrintScene();               
         }
 
         public void PrintScene()

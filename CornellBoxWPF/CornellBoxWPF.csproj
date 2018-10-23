@@ -58,10 +58,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Acceleration\BHV.cs" />
+    <Compile Include="Acceleration\BHVElem.cs" />
+    <Compile Include="Acceleration\PriorityQueue.cs" />
+    <Compile Include="Light\LightSphere.cs" />
     <Compile Include="TexturingHelper\BitmapTexturing.cs" />
     <Compile Include="Geometrics\HitPoint.cs" />
     <Compile Include="Helpers\GammaCorrection.cs" />
-    <Compile Include="Light\Light.cs" />
+    <Compile Include="Light\LightSource.cs" />
     <Compile Include="Light\Lighting.cs" />
     <Compile Include="Geometrics\Ray.cs" />
     <Compile Include="Geometrics\Scene.cs" />

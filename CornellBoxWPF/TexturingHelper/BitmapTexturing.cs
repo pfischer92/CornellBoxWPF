@@ -14,8 +14,8 @@ namespace CornellBoxWPF.BitmapHelper
         }
         public Vector3 GetBitmapColor(double x, double y, double z)
         {
-            double s = Math.Atan2(x, z);
-            double t = Math.Acos(y);
+            double s = Math.Atan2(x, -z);
+            double t = Math.Acos(-y);
 
             // Get Color from bitmap
             int u = (int)(t / (Math.PI) * bitmap.Width);
@@ -29,7 +29,7 @@ namespace CornellBoxWPF.BitmapHelper
             }
             else
             {
-                return new Vector3(1, 1, 1);    // Black
+                return new Vector3(0, 0, 0);    // Black
             }
         }
     }

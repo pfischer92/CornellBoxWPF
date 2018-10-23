@@ -1,4 +1,5 @@
 ﻿using CornellBoxWPF.BitmapHelper;
+using CornellBoxWPF.Light;
 using CornellBoxWPF.TexturingHelper;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace CornellBoxWPF
         private List<Sphere> _spheres = new List<Sphere>();
         private Lighting _lighting = new Lighting();
         BitmapTexturing bitmapTexturing = new BitmapTexturing();
+        public static Random random = new Random();
 
         public Scene(List<Sphere> spheres, Lighting lighting)
         {
@@ -34,6 +36,11 @@ namespace CornellBoxWPF
             Vector3 d = f + pixel.X * r * (float)Math.Tan(_FOV / 2) + pixel.Y * u * (float)Math.Tan(_FOV / 2);
 
             return new Ray(_eye, Vector3.Normalize(d));
+        }
+
+        public float GetRandomNumber(float minimum, float maximum)
+        {
+            return (float)random.NextDouble() * (maximum - minimum) + minimum;
         }
 
         public float FindHitPoint(Ray ray, Sphere sp)
@@ -111,7 +118,7 @@ namespace CornellBoxWPF
             return specularLight;
         }
 
-        public Vector3 GetShadowLight(Light light, HitPoint hitPoint, Vector3 sphereColor)
+        public Vector3 GetShadowLight(LightSource light, HitPoint hitPoint, Vector3 sphereColor)
         {
             Vector3 shadowLight = Vector3.Zero;
             Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(light._position - hitPoint._h));
@@ -125,6 +132,33 @@ namespace CornellBoxWPF
 
             return shadowLight;
         }
+
+        public Vector3 GetSoftShadowLight(LightSphere lp, HitPoint hitPoint, Vector3 sphereColor)
+        {
+            Vector3 shadowLight = Vector3.Zero;
+            Vector3 NL = Vector3.Normalize(hitPoint._h - lp._position);
+            Vector3 Nx = Vector3.Normalize(Vector3.Cross(NL, _up));
+            Vector3 Ny = Vector3.Cross(NL, Nx);
+            int numOfCalc = 20;
+            int hits = 0;
+
+            for (int i = 0; i < numOfCalc; i++)
+            {
+                Vector3 P = lp._position + lp._Radius * GetRandomNumber(0f, 1f) * Nx + Ny * GetRandomNumber(0f, 1f) * lp._Radius;
+                Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(P - hitPoint._h));
+                lightRay._origin += lightRay._direction * 0.001f;
+                HitPoint shadow = FindClosestHitPoint(lightRay);
+
+                if (shadow != null && (shadow._h - hitPoint._h).Length() < (lp._position - hitPoint._h).Length())
+                {
+                    hits++;
+                    shadowLight = lp._color * sphereColor * 0.7f;
+                }
+            }
+
+            shadowLight = shadowLight * hits / numOfCalc;
+            return shadowLight;
+        }
         
 
         public Vector3 CalcColour(CheckBoxControl checkBoxControl, Ray ray, int reflectionFactor = 0)
@@ -136,10 +170,43 @@ namespace CornellBoxWPF
             // No hitpoint found
             if (hitpoint == null || hitpoint._sphere == null){ return Vector3.Zero;}
 
-            foreach (Light light in _lighting._lights)
+            // Case 5: Reflections
+            if (checkBoxControl.IsReflectionCheckBoxChecked)
+            {
+                if (hitpoint._sphere._reflection && _reflectionStep < 10)
+                {
+                    Vector3 l1 = Vector3.Normalize(_eye - hitpoint._h);
+                    Vector3 n2 = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);
+                    Vector3 r2 = 2 * (Vector3.Dot(l1, n2)) * n2 - l1;
+
+                    Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
+
+                    color += col;
+                    return color;
+                }
+            }
+
+            // Case 8: Soft shadows
+            if (checkBoxControl.IsSoftShadowCheckBoxChecked)
+            {
+                LightSphere lp = new LightSphere(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f), 0.2f);
+
+                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);     
+                Vector3 l = Vector3.Normalize(Vector3.Subtract(lp._position, hitpoint._h));
+                float nL = Vector3.Dot(n, l);
+                Vector3 s = l - Vector3.Dot(l, n) * n;
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._h));
+                Vector3 r = Vector3.Normalize(l - 2 * s);
+                color += GetDiffuseLight(nL, lp._color, hitpoint._color);
+                color += GetSpecularLight(nL, hitpoint, lp._color, r, EH);
+                color -= GetSoftShadowLight(lp, hitpoint, hitpoint._color);
+                return color;
+            }
+
+            foreach (LightSource light in _lighting._lights)
             {
                 // Get overall settings
-                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);     // Normal vector of hitpoint
+                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center); 
                 Vector3 l = Vector3.Normalize(Vector3.Subtract(light._position, hitpoint._h));
                 float nL = Vector3.Dot(n, l);
                 Vector3 s = l - Vector3.Dot(l, n) * n;
@@ -164,23 +231,11 @@ namespace CornellBoxWPF
                 // Case 7: Bitmap textures
                 if (checkBoxControl.IsBitmapTextureCheckBoxChecked && hitpoint._sphere._bitmapTexture) { color = bitmapTexturing.GetBitmapColor(n.X, n.Y, n.Z); }
             }
-            // Case 5: Reflections
-            if (checkBoxControl.IsReflectionCheckBoxChecked)
-                {
-                    if (hitpoint._sphere._reflection && _reflectionStep < 10)
-                    {
-                        Vector3 l1 = Vector3.Normalize(_eye - hitpoint._h);
-                        Vector3 n2 = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);
-                        Vector3 r2 = 2 * (Vector3.Dot(l1, n2)) * n2 - l1;
 
-                        Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
-                    
-                            color += col * 0.5f;
-                        
-                    }
-                }
-            
             return color;
+           
+            
+            
         }
     }
 }

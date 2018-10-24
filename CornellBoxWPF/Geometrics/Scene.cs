@@ -111,7 +111,7 @@ namespace CornellBoxWPF
             Vector3 specularLight = Vector3.Zero;
             if (nL >= 0)
             {
-                float phongFactor = Vector3.Dot(r, Vector3.Normalize(hitPoint._h - _eye));
+                float phongFactor = Vector3.Dot(r, Vector3.Normalize(hitPoint._point - _eye));
                 specularLight = lightColor * (float)Math.Pow(phongFactor, _k);
             }
 
@@ -121,11 +121,11 @@ namespace CornellBoxWPF
         public Vector3 GetShadowLight(LightSource light, HitPoint hitPoint, Vector3 sphereColor)
         {
             Vector3 shadowLight = Vector3.Zero;
-            Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(light._position - hitPoint._h));
+            Ray lightRay = new Ray(hitPoint._point, Vector3.Normalize(light._position - hitPoint._point));
             lightRay._origin += lightRay._direction * 0.001f;
             HitPoint shadow = FindClosestHitPoint(lightRay);
 
-            if (shadow != null && (shadow._h - hitPoint._h).Length() < (light._position - hitPoint._h).Length())
+            if (shadow != null && (shadow._point - hitPoint._point).Length() < (light._position - hitPoint._point).Length())
             {
                 shadowLight = light._color * sphereColor;
             }
@@ -136,7 +136,7 @@ namespace CornellBoxWPF
         public Vector3 GetSoftShadowLight(LightSphere lp, HitPoint hitPoint, Vector3 sphereColor)
         {
             Vector3 shadowLight = Vector3.Zero;
-            Vector3 NL = Vector3.Normalize(hitPoint._h - lp._position);
+            Vector3 NL = Vector3.Normalize(hitPoint._point - lp._position);
             Vector3 Nx = Vector3.Normalize(Vector3.Cross(NL, _up));
             Vector3 Ny = Vector3.Cross(NL, Nx);
             int numOfCalc = 20;
@@ -145,11 +145,11 @@ namespace CornellBoxWPF
             for (int i = 0; i < numOfCalc; i++)
             {
                 Vector3 P = lp._position + lp._Radius * GetRandomNumber(0f, 1f) * Nx + Ny * GetRandomNumber(0f, 1f) * lp._Radius;
-                Ray lightRay = new Ray(hitPoint._h, Vector3.Normalize(P - hitPoint._h));
+                Ray lightRay = new Ray(hitPoint._point, Vector3.Normalize(P - hitPoint._point));
                 lightRay._origin += lightRay._direction * 0.001f;
-                HitPoint shadow = FindClosestHitPoint(lightRay);
+                HitPoint shadowHitpoint = FindClosestHitPoint(lightRay);
 
-                if (shadow != null && (shadow._h - hitPoint._h).Length() < (lp._position - hitPoint._h).Length())
+                if (shadowHitpoint != null && (shadowHitpoint._point - hitPoint._point).Length() < (lp._position - hitPoint._point).Length())
                 {
                     hits++;
                     shadowLight = lp._color * sphereColor * 0.7f;
@@ -175,8 +175,8 @@ namespace CornellBoxWPF
             {
                 if (hitpoint._sphere._reflection && _reflectionStep < 10)
                 {
-                    Vector3 l1 = Vector3.Normalize(_eye - hitpoint._h);
-                    Vector3 n2 = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);
+                    Vector3 l1 = Vector3.Normalize(_eye - hitpoint._point);
+                    Vector3 n2 = Vector3.Normalize(hitpoint._point - hitpoint._sphere._center);
                     Vector3 r2 = 2 * (Vector3.Dot(l1, n2)) * n2 - l1;
 
                     Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
@@ -191,11 +191,11 @@ namespace CornellBoxWPF
             {
                 LightSphere lp = new LightSphere(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f), 0.2f);
 
-                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center);     
-                Vector3 l = Vector3.Normalize(Vector3.Subtract(lp._position, hitpoint._h));
+                Vector3 n = Vector3.Normalize(hitpoint._point - hitpoint._sphere._center);     
+                Vector3 l = Vector3.Normalize(Vector3.Subtract(lp._position, hitpoint._point));
                 float nL = Vector3.Dot(n, l);
                 Vector3 s = l - Vector3.Dot(l, n) * n;
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._h));
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._point));
                 Vector3 r = Vector3.Normalize(l - 2 * s);
                 color += GetDiffuseLight(nL, lp._color, hitpoint._color);
                 color += GetSpecularLight(nL, hitpoint, lp._color, r, EH);
@@ -206,11 +206,11 @@ namespace CornellBoxWPF
             foreach (LightSource light in _lighting._lights)
             {
                 // Get overall settings
-                Vector3 n = Vector3.Normalize(hitpoint._h - hitpoint._sphere._center); 
-                Vector3 l = Vector3.Normalize(Vector3.Subtract(light._position, hitpoint._h));
+                Vector3 n = Vector3.Normalize(hitpoint._point - hitpoint._sphere._center); 
+                Vector3 l = Vector3.Normalize(Vector3.Subtract(light._position, hitpoint._point));
                 float nL = Vector3.Dot(n, l);
                 Vector3 s = l - Vector3.Dot(l, n) * n;
-                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._h));
+                Vector3 EH = Vector3.Normalize(Vector3.Subtract(_eye, hitpoint._point));
                 Vector3 r = Vector3.Normalize(l - 2 * s);
 
                 // Case 1: Simple Ray Tracing 
@@ -233,9 +233,6 @@ namespace CornellBoxWPF
             }
 
             return color;
-           
-            
-            
         }
     }
 }

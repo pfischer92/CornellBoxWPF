@@ -57,9 +57,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Acceleration\BHV.cs" />
-    <Compile Include="Acceleration\BHVElem.cs" />
-    <Compile Include="Acceleration\PriorityQueue.cs" />
+    <Compile Include="Acceleration\BHVSphere.cs" />
     <Compile Include="Light\LightSphere.cs" />
     <Compile Include="TexturingHelper\BitmapTexturing.cs" />
     <Compile Include="Geometrics\HitPoint.cs" />

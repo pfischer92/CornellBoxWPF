@@ -22,7 +22,6 @@ namespace CornellBoxWPF
 
         public Sphere()
         {
-
         }
     }
 }

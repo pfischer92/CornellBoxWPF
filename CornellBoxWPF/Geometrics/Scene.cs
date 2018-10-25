@@ -16,16 +16,18 @@ namespace CornellBoxWPF
         public static float _FOV = (float)(36 * Math.PI / 180);
         public static int _k = 40;
         public static int _reflectionStep = 5;
+        public bool _bhvEnabled = false;
 
         private List<Sphere> _spheres = new List<Sphere>();
         private Lighting _lighting = new Lighting();
         BitmapTexturing bitmapTexturing = new BitmapTexturing();
         public static Random random = new Random();
 
-        public Scene(List<Sphere> spheres, Lighting lighting)
+        public Scene(List<Sphere> spheres, Lighting lighting, bool bhvEnabled = false)
         {
             _spheres = spheres;
             _lighting = lighting;
+            _bhvEnabled = bhvEnabled;
         }
 
         public Ray CreateEyeRay(Vector2 pixel)
@@ -75,24 +77,32 @@ namespace CornellBoxWPF
 
         public HitPoint FindClosestHitPoint(Ray ray)
         {
-            Vector3 H = Vector3.Zero;
-            Vector3 colour = Vector3.Zero;
-            Sphere closestSphere = null;
-            float smallestLambda = float.PositiveInfinity;
-
-            foreach(Sphere sp in _spheres)
+            if (_bhvEnabled)
             {
-                float lambda = FindHitPoint(ray, sp);
-
-                if (lambda > 0 && lambda < smallestLambda)
-                {
-                    H = ray._origin + lambda * ray._direction;
-                    colour = sp._color;
-                    smallestLambda = lambda;
-                    closestSphere = sp;
-                }
+                // Todo: Traverse through tree structure
+                return null;
             }
-            return new HitPoint(ray, H, colour, closestSphere);
+            else
+            {
+                Vector3 H = Vector3.Zero;
+                Vector3 colour = Vector3.Zero;
+                Sphere closestSphere = null;
+                float smallestLambda = float.PositiveInfinity;
+
+                foreach (Sphere sp in _spheres)
+                {
+                    float lambda = FindHitPoint(ray, sp);
+
+                    if (lambda > 0 && lambda < smallestLambda)
+                    {
+                        H = ray._origin + lambda * ray._direction;
+                        colour = sp._color;
+                        smallestLambda = lambda;
+                        closestSphere = sp;
+                    }
+                }
+                return new HitPoint(ray, H, colour, closestSphere);
+            }
         }
 
         public static Vector3 GetDiffuseLight(float nL, Vector3 lightColor, Vector3 sphereColor)

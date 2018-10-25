@@ -14,6 +14,7 @@
         <CheckBox IsChecked="{Binding IsProceduralTextureCheckBoxChecked}" x:Name="ProceduralTexture" Content="Procedural Texture" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,80" />
         <CheckBox IsChecked="{Binding IsBitmapTextureCheckBoxChecked}" x:Name="BitmapTexture" Content="Bitmap Texture" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,100" />
         <CheckBox IsChecked="{Binding IsSoftShadowCheckBoxChecked}" x:Name="SoftShadows" Content="Soft Shadows" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,120" />
+        <CheckBox IsChecked="{Binding ISBVHAccelerationCheckBoxChecked}" x:Name="BHVAcceleration" Content="BHV Acceleration" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,140" />
         <Image x:Name="img" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="50,20,20,20" />
     </Grid>
 </Window>

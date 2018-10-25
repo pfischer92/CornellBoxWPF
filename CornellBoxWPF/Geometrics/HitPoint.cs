@@ -9,10 +9,10 @@ namespace CornellBoxWPF
         public Vector3 _color { get; set; }
         public Sphere _sphere { get; set; }
 
-        public HitPoint(Ray ray, Vector3 h, Vector3 color, Sphere sphere)
+        public HitPoint(Ray ray, Vector3 point, Vector3 color, Sphere sphere)
         {
             _ray = ray;
-            _point = h;
+            _point = point;
             _color = color;
             _sphere = sphere;
         }

@@ -1,8 +1,10 @@
-﻿using CornellBoxWPF.BitmapHelper;
+﻿using CornellBoxWPF.Acceleration;
+using CornellBoxWPF.BitmapHelper;
 using CornellBoxWPF.Light;
 using CornellBoxWPF.TexturingHelper;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using static CornellBoxWPF.MainWindow;
 
@@ -47,61 +49,63 @@ namespace CornellBoxWPF
 
         public float FindHitPoint(Ray ray, Sphere sp)
         {
-            var a = 1;
-            var cE = ray._origin - sp._center;
-            var b = 2 * Vector3.Dot(cE, ray._direction);
-            var c = cE.Length() * cE.Length() - sp._radius * sp._radius;
-            var discriminant = b * b - 4 * a * c;
-            var determinant = Math.Sqrt(discriminant);
+            Vector3 cE = ray._origin - sp._center;
+            float b = 2 * Vector3.Dot(cE, ray._direction);
+            float c = cE.Length() * cE.Length() - sp._radius * sp._radius;
+
+            float discriminant = b * b - 4 * c;
+            float determinant = (float)Math.Sqrt(discriminant);
 
             if (discriminant >= 0)
             { 
-                var lambda1 = (-b + determinant) / (2 * a);
-                var lambda2 = (-b - determinant) / (2 * a);
+                var l1 = (-b + determinant) / 2;
+                var l2 = (-b - determinant) / 2;
 
-                if (lambda1 > 0 && lambda2 > 0)
-                {
-                    return (float)Math.Min(lambda1, lambda2);
-                }
-                else if (lambda1 > 0)
-                {
-                    return (float)lambda1;
-                }
-                else if (lambda2 > 0)
-                {
-                    return (float)lambda2;
-                }
+                if (l1 > 0 && l2 > 0)  
+                    return Math.Min(l1, l2);
+                else if (l1 > 0)
+                    return l1;
+                else if (l2 > 0)
+                    return l2;
             }
-            return 0;
+            return 0.0f;
         }
 
         public HitPoint FindClosestHitPoint(Ray ray)
         {
             if (_bhvEnabled)
             {
-                // Todo: Traverse through tree structure
-                return null;
+                // Precondition: Tree is build
+                if (spheres.Count.Equals(1))
+                {
+
+                    return null;
+                }
+                else
+                {
+                    throw new Exception("BVH tree not accessible");
+                }
             }
             else
             {
-                Vector3 H = Vector3.Zero;
+                Vector3 point = Vector3.Zero;
                 Vector3 colour = Vector3.Zero;
                 Sphere closestSphere = null;
                 float smallestLambda = float.PositiveInfinity;
 
-                foreach (Sphere sp in _spheres)
+                foreach (Sphere sphere in _spheres)
                 {
-                    float lambda = FindHitPoint(ray, sp);
+                    float lambda = FindHitPoint(ray, sphere);
 
                     if (lambda > 0 && lambda < smallestLambda)
                     {
-                        H = ray._origin + lambda * ray._direction;
-                        colour = sp._color;
+                        point = ray._origin + lambda * ray._direction;
+                        colour = sphere._color;
                         smallestLambda = lambda;
-                        closestSphere = sp;
+                        closestSphere = sphere;
                     }
                 }
-                return new HitPoint(ray, H, colour, closestSphere);
+                return new HitPoint(ray, point, colour, closestSphere);
             }
         }
 
@@ -110,7 +114,7 @@ namespace CornellBoxWPF
             Vector3 diffLight = Vector3.Zero;
             if (nL >= 0)
             {
-                diffLight = lightColor * sphereColor * nL;
+                return diffLight = lightColor * sphereColor * nL;
             }
 
             return diffLight;
@@ -191,8 +195,7 @@ namespace CornellBoxWPF
 
                     Vector3 col = CalcColour(checkBoxControl, new Ray(_eye, r2), _reflectionStep + 1);
 
-                    color += col;
-                    return color;
+                    return color += col;
                 }
             }
 

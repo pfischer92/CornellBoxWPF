@@ -5,21 +5,22 @@ using System.Numerics;
 
 namespace CornellBoxWPF.Acceleration
 {
-    public class BHVAccelaration
+    public class BVHAccelaration
     {
         public List<Sphere> spheres { get; }
         
-        public BHVAccelaration(List<Sphere> spheres)
+        public BVHAccelaration(List<Sphere> spheres)
         {
             this.spheres = new List<Sphere>(spheres.ToArray()); // Deep copy
         }
 
         public List<Sphere> CreateTreeStructure()
         {
-            Sphere sphere1 = null;
-            Sphere sphere2 = null;
             while(spheres.Count > 1)
             {
+                Sphere sphere1 = null;
+                Sphere sphere2 = null;
+
                 float minDistance = float.MaxValue;
                 float distance;
                 foreach (Sphere s1 in spheres)
@@ -43,14 +44,13 @@ namespace CornellBoxWPF.Acceleration
                 // Create new BHV Pair
                 float radius = ((sphere1._color + sphere2._center).Length() + sphere1._radius + sphere2._radius) / 2f;
                 Vector3 center = sphere1._center + Vector3.Normalize(sphere1._center - sphere2._center) * (radius - sphere1._radius);
-                BHVSphere bHVSphere = new BHVSphere(center, radius, Vector3.Zero, sphere1, sphere2);
+                BVHSphere bHVSphere = new BVHSphere(center, radius, Vector3.Zero, sphere1, sphere2);
 
                 // Update spheres
                 spheres.Remove(sphere1);
                 spheres.Remove(sphere2);
                 spheres.Add(bHVSphere);
             }
-
 
             return spheres;
         }

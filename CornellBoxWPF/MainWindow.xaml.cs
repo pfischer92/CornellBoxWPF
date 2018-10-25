@@ -145,7 +145,7 @@ namespace CornellBoxWPF
                 }
             }
 
-            public bool IsBVHAccelerationCheckBoxChecked
+            public bool ISBVHAccelerationCheckBoxChecked
             {
                 get
                 {
@@ -205,8 +205,9 @@ namespace CornellBoxWPF
                                                                        new LightSource(new Vector3(0.4f, -0.9f, 0), new Vector3(1.0f, 0.0f, 0.0f))});  // Red light
 
 
-        public static BHVAccelaration bHVAccelaration = new BHVAccelaration(spheres);
-        
+        public static BVHAccelaration bHVAccelaration = new BVHAccelaration(spheres);
+        public static Scene bhvScene = new Scene(bHVAccelaration.CreateTreeStructure(), lights, true);
+
         public static Scene scene = new Scene(spheres, lights);
 
         public static Gaussian rd = new Gaussian();
@@ -227,7 +228,6 @@ namespace CornellBoxWPF
 
         public void PrintScene()
         {
-            Scene bhvScene = new Scene(bHVAccelaration.CreateTreeStructure(), lights, true);
             byte[] colourData = new byte[image.PixelHeight * image.PixelWidth * bytesPerPixel];
             for (int x = 0; x < image.PixelWidth; x++)
             {
@@ -240,7 +240,7 @@ namespace CornellBoxWPF
                         float tmp_y = (float)rd.RandomGauss(y, 0.5f);
                         Vector2 coord = new Vector2((float)2.0 / image.PixelWidth * tmp_x - 1, (float)2.0 / image.PixelHeight * tmp_y - 1);
 
-                        if (checkBoxControl.IsBVHAccelerationCheckBoxChecked)
+                        if (checkBoxControl.ISBVHAccelerationCheckBoxChecked)
                         {
                             color += bhvScene.CalcColour(checkBoxControl, bhvScene.CreateEyeRay(coord));
                         }

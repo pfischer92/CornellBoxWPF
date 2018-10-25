@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace CornellBoxWPF.Acceleration
 {
-    public class BHVSphere : Sphere
+    public class BVHSphere : Sphere
     {
         public Sphere _leftChild { get; set; }
         public Sphere _rightChild { get; set; }
         
-        public BHVSphere(Vector3 center, float radius, Vector3 color, Sphere leftChild, Sphere rightChild, bool reflection = false, bool procedualTexture = false, bool bitmapTexture = false)
+        public BVHSphere(Vector3 center, float radius, Vector3 color, Sphere leftChild, Sphere rightChild, bool reflection = false, bool procedualTexture = false, bool bitmapTexture = false)
         {
             this._leftChild = leftChild;
             this._rightChild = rightChild;

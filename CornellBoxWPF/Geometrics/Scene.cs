@@ -18,7 +18,13 @@ namespace CornellBoxWPF
         public static float _FOV = (float)(36 * Math.PI / 180);
         public static int _k = 40;
         public static int _reflectionStep = 5;
+
+        // BHV global settings
         public bool _bhvEnabled = false;
+        Sphere closestSphere = null;
+        float smallestLambda = float.PositiveInfinity;
+        Vector3 point = Vector3.Zero;
+        Vector3 colour = Vector3.Zero;        
 
         private List<Sphere> _spheres = new List<Sphere>();
         private Lighting _lighting = new Lighting();
@@ -73,21 +79,6 @@ namespace CornellBoxWPF
 
         public HitPoint FindClosestHitPoint(Ray ray)
         {
-            if (_bhvEnabled)
-            {
-                // Precondition: Tree is build
-                if (spheres.Count.Equals(1))
-                {
-
-                    return null;
-                }
-                else
-                {
-                    throw new Exception("BVH tree not accessible");
-                }
-            }
-            else
-            {
                 Vector3 point = Vector3.Zero;
                 Vector3 colour = Vector3.Zero;
                 Sphere closestSphere = null;
@@ -105,8 +96,48 @@ namespace CornellBoxWPF
                         closestSphere = sphere;
                     }
                 }
-                return new HitPoint(ray, point, colour, closestSphere);
+                return new HitPoint(ray, point, colour, closestSphere);            
+        }
+
+        public HitPoint FindClosestHitPointBHV(Ray ray, Sphere s)
+        {
+            if (_bhvEnabled)
+            {
+                // Check root for hitpoint
+                var node = s as BVHSphere;
+
+                // We are at a leaf
+                if (node == null)
+                {
+                    float lambda = FindHitPoint(ray, s);
+                    if (lambda > 0 && lambda < smallestLambda)
+                    {
+                        point = ray._origin + lambda * ray._direction;
+                        smallestLambda = lambda;
+                        colour = s._color;
+                        closestSphere = s;                        
+                    }
+                    return new HitPoint(ray, point, colour, closestSphere);
+                }
+
+                float leftLambda = FindHitPoint(ray, node._leftChild);
+                float rightLambda = FindHitPoint(ray, node._rightChild);
+
+                if (leftLambda > 0 && rightLambda > 0)
+                {
+                    FindClosestHitPointBHV(ray, node._leftChild);
+                    FindClosestHitPointBHV(ray, node._rightChild);
+                }
+                else if (leftLambda > 0)
+                {
+                    FindClosestHitPointBHV(ray, node._leftChild);
+                }
+                else if (rightLambda > 0)
+                {
+                    FindClosestHitPointBHV(ray, node._rightChild);
+                }                
             }
+            return null;
         }
 
         public static Vector3 GetDiffuseLight(float nL, Vector3 lightColor, Vector3 sphereColor)
@@ -176,10 +207,26 @@ namespace CornellBoxWPF
         
 
         public Vector3 CalcColour(CheckBoxControl checkBoxControl, Ray ray, int reflectionFactor = 0)
-        {            
-            HitPoint hitpoint = FindClosestHitPoint(ray);
+        {
+            HitPoint hitpoint = null;
             Vector3 color = Vector3.Zero;
             Vector3 diffColor = Vector3.Zero;
+
+            if (checkBoxControl.ISBVHAccelerationCheckBoxChecked)
+            {
+                BVHSphere root = (BVHSphere)_spheres.First();
+                hitpoint = FindClosestHitPointBHV(ray, root);
+                LightSource light = new LightSource(new Vector3(0.0f, -0.9f, 0), new Vector3(1.0f, 1.0f, 1.0f));
+                Vector3 n = Vector3.Normalize(hitpoint._point - hitpoint._sphere._center);
+                Vector3 l = Vector3.Normalize(Vector3.Subtract(light._position, hitpoint._point));
+                float nL = Vector3.Dot(n, l);
+                return color = GetDiffuseLight(nL, light._color, hitpoint._color);
+            }
+            else
+            {
+                hitpoint = FindClosestHitPoint(ray);
+            }           
+            
 
             // No hitpoint found
             if (hitpoint == null || hitpoint._sphere == null){ return Vector3.Zero;}
@@ -239,7 +286,7 @@ namespace CornellBoxWPF
                 if (checkBoxControl.IsShadowCheckBoxChecked) { color -= GetShadowLight(light, hitpoint, color); }
 
                 // Case 6: Procedural Textures
-                if (checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture){ color = ProceduralTexturing.GetProceduralColor(n.X, n.Y, n.Z);}
+                //if (checkBoxControl.IsProceduralTextureCheckBoxChecked && hitpoint._sphere._proceduralTexture){ color = ProceduralTexturing.GetProceduralColor(n.X, n.Y, n.Z);}
 
                 // Case 7: Bitmap textures
                 if (checkBoxControl.IsBitmapTextureCheckBoxChecked && hitpoint._sphere._bitmapTexture) { color = bitmapTexturing.GetBitmapColor(n.X, n.Y, n.Z); }
